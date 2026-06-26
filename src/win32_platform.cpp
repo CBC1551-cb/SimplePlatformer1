@@ -28,6 +28,7 @@
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 static HWND window;
+static HDC dc;
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 //                                      Windows Platform Implementations
@@ -44,6 +45,13 @@ LRESULT CALLBACK windows_window_callback(HWND hwnd,UINT msg,WPARAM wParam,LPARAM
             PostQuitMessage(0);
             running = false;
             return 0;
+        }
+        case WM_SIZE:{
+            RECT rect = {};
+            GetClientRect(window, &rect);
+            input.screenSizeX = rect.right - rect.left;
+            input.screenSizeY = rect.bottom - rect.top;
+            break;
         }
         default:{
             result = DefWindowProc(hwnd, msg, wParam, lParam);
@@ -174,7 +182,7 @@ bool platform_create_window(int width, int height, const WCHAR* title){
             return false;
         }
 
-        HDC dc = GetDC(window);
+        dc = GetDC(window);
         if(!dc){
             SP_ASSERT(false, "Failed to get HDC");
             return false;
@@ -255,4 +263,8 @@ void* platform_load_gl_function(char* function){
     }
 
     return(void*)proc;
+}
+
+void platform_swap_buffers(){
+    SwapBuffers(dc);
 }

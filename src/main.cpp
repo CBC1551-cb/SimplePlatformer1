@@ -1,24 +1,40 @@
 #include "platformer_lib.h"
+
+#include "input.h"
+
 #include "platform.h"
 
 #define APIENTRY
+#define GL_GLEXT_PROTOTYPES
 #include "glcorearb.h"
-#include "gl_renderer.h"
 
 #ifdef _WIN32
 #include "win32_platform.cpp"
 
 #endif
 
+#include "gl_renderer.cpp"
+
 int main(){
+    BumpAllocator transientStorage = make_bump_allocator(MB(50));
+
     #ifdef _WIN32
         EnableVirtualTerminalProcessing();
     #endif
+
     platform_create_window(1200, 720, L"Simple Platformer");
-    while (running == true)
+    input.screenSizeX = 1200;
+    input.screenSizeY = 720;
+
+    gl_init(&transientStorage);
+    running = true;
+    while (running)
     {
         // updating game
         platform_update_window();
+        gl_render();
+
+        platform_swap_buffers();
     }
     return 0;
 }
