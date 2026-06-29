@@ -4,6 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "gl_renderer.h"
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 //                                      OpenGL Structs
@@ -17,6 +18,8 @@ const char* TEXTURE_PATH = "assets/textures/TEXTURE_ATLAS.png";
 struct GLContext{
     GLuint programID;
     GLuint textureID;
+    GLuint transformSBOID;
+    GLuint screenSizeID;
 };
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -130,6 +133,19 @@ if(!success){
         stbi_image_free(data);
     }
 
+    // Transform Storage Buffer
+    {
+        glGenBuffers(1, &glContext.transformSBOID);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, glContext.transformSBOID);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform) * MAX_TRANSFORMS, renderData.transforms, GL_DYNAMIC_DRAW);
+
+    }
+
+    // Uniforms
+    {
+        glContext.screenSizeID = glGetUniformLocation(glContext.programID, "screenSize");
+    }
+
     // sRGB output (even if input texture is non-sRGB -> don't rely on texture used)
     // Tour font is not using sRGB, for example (not that it matters there, because no actual color is sampled from it)
     // But this could prevent some future bug when you start mixing different types of textures.
@@ -153,5 +169,17 @@ void gl_render(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, input.screenSizeX, input.screenSizeY);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    // Copy screen size to the GPU
+    Vec2 screenSize = {(float)input.screenSizeX, (float)input.screenSizeY};
+    glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
+
+    // Opaque objects
+    {
+        //copy tranforms to the GPU
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData.transformCount, renderData.transforms);
+
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData.transformCount);
+
+        renderData.transformCount = 0;
+    }
 }

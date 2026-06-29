@@ -2,6 +2,8 @@
 
 #include "input.h"
 
+#include "game.cpp"
+
 #include "platform.h"
 
 #define APIENTRY
@@ -32,6 +34,7 @@ int main(){
     {
         // updating game
         platform_update_window();
+        update_game();
         gl_render();
 
         platform_swap_buffers();
