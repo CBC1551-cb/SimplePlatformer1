@@ -2,6 +2,6 @@
 
 libs="-luser32 -lopengl32 -lgdi32"
 warnings="-Wno-writable-strings -Wno-format-security"
-includes="-Ithird_party -Ithird_party/Include"
+includes="-Ithird_party -Ithird_party/Include -Iassets -Iassets/Include"
 
 clang++ $includes -g src/main.cpp -oSimplePlatformer1.exe $libs $warnings
