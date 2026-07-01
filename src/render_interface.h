@@ -10,6 +10,12 @@
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 //                                      Renderer Structs
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+struct OrthographicCamera2D{
+    float zoom = 1.0f;
+    Vec2 dimensions;
+    Vec2 position;
+
+};
 struct Transform{
     Vec2 position;
     Vec2 size;
@@ -18,6 +24,9 @@ struct Transform{
 };
 
 struct RenderData{
+    OrthographicCamera2D gameCamera;
+    OrthographicCamera2D uiCamera;
+
     int transformCount;
     Transform transforms[MAX_TRANSFORMS];
 };
@@ -25,20 +34,20 @@ struct RenderData{
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 //                                      Renderer Globals
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-static RenderData renderData;
+static RenderData* renderData;
 
 
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 //                                      Renderer Functions
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-void draw_sprite(SpriteID spriteID, Vec2 pos, Vec2 size){
+void draw_sprite(SpriteID spriteID, Vec2 pos){
     Sprite sprite = get_sprite(spriteID);
 
     Transform transform = {};
-    transform.position = pos;
-    transform.size = size;
+    transform.position = pos - Ivec2_Vec2(sprite.spriteSize) / 2.0f;
+    transform.size = Ivec2_Vec2(sprite.spriteSize);
     transform.atlasOffset = sprite.atlasOffset;
     transform.spriteSize = sprite.spriteSize;
 
-    renderData.transforms[renderData.transformCount++] = transform;
+    renderData->transforms[renderData->transformCount++] = transform;
 }
